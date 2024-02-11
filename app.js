@@ -1,5 +1,3 @@
-// api.openweathermap.org/data/2.5/weather?q={city name}&appid={your api key}
-
 const weatherApi = {
     key: "bab281d79e5f1e9755a68d754cc313e7",
     baseUrl: "https://api.openweathermap.org/data/2.5/weather", 
@@ -9,25 +7,27 @@ const searchInputBox = document.getElementById('input-box');
 
 // Event Listener Function on keypress
 searchInputBox.addEventListener('keypress', (event) => {
-    
-    if(event.keyCode == 13) {
+    if (event.keyCode == 13) {
         console.log(searchInputBox.value);
         getWeatherReport(searchInputBox.value);
         document.querySelector('.weather-body').style.display = "block";
     }
-
 });
 
 // Get Weather Report
-function getWeatherReport(city) {
-    fetch(`${weatherApi.baseUrl}?q=${city}&appid=${weatherApi.key}&units=metric`)
-    .then(weather => {
-        return weather.json();
-    }).then(showWeatherReport);
+async function getWeatherReport(city) {
+    try {
+        const response = await fetch(`${weatherApi.baseUrl}?q=${city}&appid=${weatherApi.key}&units=metric`);
+        const weatherData = await response.json();
+        showWeatherReport(weatherData);
+        updateBackgroundImage(weatherData.weather[0].main);
+    } catch (error) {
+        console.error('Error fetching weather data:', error);
+    }
 }
 
 // Show Weather Report
-function showWeatherReport(weather){
+function showWeatherReport(weather) {
     console.log(weather);
 
     let city = document.getElementById('city');
@@ -45,39 +45,37 @@ function showWeatherReport(weather){
     let date = document.getElementById('date');
     let todayDate = new Date();
     date.innerText = dateManage(todayDate);
+}
 
-    
-        
-     if(weatherType.textContent == 'Clouds') {
+// Update Background Image based on Weather Type
+function updateBackgroundImage(weatherType) {
+    let backgroundImageUrl;
 
-        document.body.style.backgroundImage = "url('images/cloud.jpg')";
-        
-    } else if(weatherType.textContent == 'Haze') {
+    switch (weatherType) {
+        case 'Clouds':
+        case 'Haze':
+            backgroundImageUrl = "url('images/cloud.jpg')";
+            break;
+        case 'Rain':
+            backgroundImageUrl = "url('images/rain.jpg')";
+            break;
+        case 'Snow':
+            backgroundImageUrl = "url('images/snow.jpg')";
+            break;
+        case 'Thunderstorm':
+            backgroundImageUrl = "url('images/thunderstorm.jpg')";
+            break;
+        default:
+            backgroundImageUrl = ""; // Default background image
+    }
 
-        document.body.style.backgroundImage = "url('images/cloud.jpg')";
-        
-    }     else if(weatherType.textContent == 'Rain') {
-        
-        document.body.style.backgroundImage = "url('images/rain.jpg')";
-        
-    } else if(weatherType.textContent == 'Snow') {
-        
-        document.body.style.backgroundImage = "url('images/snow.jpg')";
-    
-    } else if(weatherType.textContent == 'Thunderstorm') {
-    
-        document.body.style.backgroundImage = "url('images/thunderstorm.jpg')";
-        
-    } 
+    document.body.style.backgroundImage = backgroundImageUrl;
 }
 
 // Date manage
 function dateManage(dateArg) {
-
     let days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
     let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
     let year = dateArg.getFullYear();
     let month = months[dateArg.getMonth()];
     let date = dateArg.getDate();
@@ -85,5 +83,3 @@ function dateManage(dateArg) {
 
     return `${date} ${month} (${day}), ${year}`;
 }
-
-
